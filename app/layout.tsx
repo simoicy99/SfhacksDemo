@@ -55,8 +55,9 @@ export default function RootLayout({
         </header>
         <main className="flex-1">{children}</main>
         <footer className="border-t border-slate-200/80 bg-white/60 backdrop-blur-sm py-6">
-          <div className="max-w-5xl mx-auto px-4 sm:px-6 text-center text-sm text-slate-500">
-            Forward · Adjustable rent offers · Demo only
+          <div className="max-w-5xl mx-auto px-4 sm:px-6 text-center text-sm text-slate-500 space-y-1">
+            <p>Forward · Adjustable rent offers · Demo only</p>
+            <p className="font-medium text-slate-600">Powered by CRS Credit API</p>
           </div>
         </footer>
         </div>

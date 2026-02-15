@@ -53,8 +53,11 @@ export default function Home() {
     <div className="relative">
       {/* Hero: one short sentence + chatbox */}
       <section className="relative flex flex-col items-center px-4 sm:px-6 py-12 sm:py-16">
-        <p className="font-heading text-xl sm:text-2xl text-slate-800 text-center mb-8 max-w-2xl mx-auto">
-          Personalized rent bundles for landlords and tenants—credit-informed, consent-based, audit-ready.
+        <p className="font-heading text-xl sm:text-2xl text-slate-800 text-center mb-4 max-w-2xl mx-auto">
+          <strong className="font-bold">Personalized rent options for tenants and credit-informed, reliable screening for landlords.</strong>
+        </p>
+        <p className="text-sm text-slate-600 text-center mb-6">
+          Try the full demo: Start demo → Create listing → Get my offers
         </p>
         <ChatBox />
         <div className="relative w-full max-w-4xl mx-auto mt-14 grid sm:grid-cols-2 gap-5 sm:gap-6">

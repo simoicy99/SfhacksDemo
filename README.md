@@ -1,78 +1,101 @@
-# Forward Adjustable Rent Offers
+# Forward — Adjustable Rent Offers
 
-Demo: credit-informed rent offer bundles for landlords and tenants. Landlords set base rent and constraints; tenants get 3–5 personalized options (rent, deposit, term, autopay) based on a soft credit prequal. Uses CRS Credit API sandbox; no full SSN stored; consent and audit built in.
+**Personalized rent options for tenants and credit-informed, reliable screening for landlords.**
+
+Built for **SF Hacks 2026** · [CRS FinTech Powered by CRS](https://sf-hacks.crscreditapi.com/) track.  
+**Powered by CRS Credit API** (sandbox: `https://api-sandbox.stitchcredit.com/api`).
+
+---
+
+## For judges: try the demo in under 2 minutes
+
+1. **Start demo** (nav) → **Create listing** (defaults are pre-filled; click “Save & continue to applicant”).
+2. **Get my offers** (applicant page: enter your name, check consent, submit).
+3. See your **offer menu** (3–5 bundles, one recommended), **“Why this menu?”** (risk band + factors from CRS), and **Audit log**.
+
+**Path:** Start demo → Create listing → Get my offers
+
+---
+
+## What we built
+
+- **Landlords** set base rent and rules (deposit range, term, autopay discount). Applicants are soft-prequalified via the **CRS Credit API** (Experian prequal, `exp-prequal-vantage4`). We compute a risk band (A/B/C/D) and generate 3–5 offer bundles; one is recommended. Consent and audit are recorded; no full SSN is stored (last4 + hash only).
+- **Tenants** get personalized rent options that fit their profile instead of a single take-it-or-leave-it offer (e.g. lower move-in cost, different term, autopay discount).
+- **AI chat** on the home page: ask “How does the demo work?” or “Find me compatible tenants.” **Find matches** directs users to chat in plain language.
+
+---
+
+## Tech stack
+
+- **Next.js 14** (App Router), TypeScript, Tailwind
+- **MongoDB** (Mongoose) for listings, applicants, consent, offers, audit
+- **CRS Credit API** sandbox for login + Experian prequal
+- **Anthropic Claude** for chat and match suggestions (optional; set `ANTHROPIC_API_KEY`)
+
+---
 
 ## Setup (under 5 minutes)
 
 1. **Clone and install**
    ```bash
+   git clone <your-repo-url>
    cd adjustableRent
    pnpm install
    ```
 
-2. **Environment variables**
-   - Copy `.env.example` to `.env`
-   - Set:
-     - `MONGODB_URI` – e.g. `mongodb://localhost:27017/forward-demo`
-     - `CRS_USERNAME` / `CRS_PASSWORD` – from SF Hacks CRS track / Stitch Credit sandbox
-     - `ENCRYPTION_SECRET` – optional; 32+ character secret to encrypt CRS raw response at rest (if unset, only a summary is stored)
-     - `APP_BASE_URL` – optional; default `http://localhost:3000`
-     - `ANTHROPIC_API_KEY` – optional; for **Find matches** (Claude) to search sandbox for compatible roommates, tenants, or listings
+2. **Environment variables**  
+   Copy `.env.example` to `.env` and set:
+   - `MONGODB_URI` – e.g. `mongodb://localhost:27017/forward-demo`
+   - `CRS_USERNAME` / `CRS_PASSWORD` – from [CRS SF Hacks](https://sf-hacks.crscreditapi.com/) (email signup for sandbox credentials)
+   - `ENCRYPTION_SECRET` – optional; 32+ chars to encrypt CRS response at rest
+   - `APP_BASE_URL` – optional
+   - `ANTHROPIC_API_KEY` – optional; for AI chat and match suggestions
 
 3. **Run**
    ```bash
    pnpm dev
    ```
-   Open [http://localhost:3001](http://localhost:3001).
+   Open the URL shown (e.g. http://localhost:3000).
 
-## Env var template
+4. **Seed** (optional)
+   ```bash
+   pnpm seed
+   ```
+   Creates one listing and one applicant for testing.
 
-See `.env.example` for all variables.
+---
 
-## Seed data
+## CRS Credit API usage
 
-Create one listing and one applicant (no full SSN):
+- **Auth:** `POST .../api/users/login` → Bearer token (cached in memory, 20-min TTL, refresh on 401).
+- **Prequal:** `POST .../api/experian/credit-profile/credit-report/standard/exp-prequal-vantage4` with `Authorization: Bearer <token>`.
+- Implemented in `lib/crsClient.ts`; prequal is triggered from `POST /api/crs/prequal` after consent is recorded.
 
-```bash
-pnpm seed
-```
+---
 
-This creates a listing and an applicant (Kylia Paolimelli–style) so you can test the flow. To run the full demo, use the in-app **“Use sandbox sample data”** on the applicant page to pre-fill the form, then **“Pull prequal and generate offers”**.
+## Main routes
+
+| Route | Description |
+|-------|-------------|
+| `GET /api/health` | MongoDB health check |
+| `POST /api/listings` | Create listing |
+| `POST /api/applicants` | Create applicant (last4 + hash only) |
+| `POST /api/consent` | Record consent |
+| `POST /api/crs/prequal` | Run prequal, create offers |
+| `GET /api/offers/:offerId` | Get offer menu |
+| `GET /api/audit?offerId=` | Audit events |
+| `POST /api/ai/chat` | Chat with Claude |
+| `POST /api/ai/match` | AI match search |
+
+---
 
 ## Troubleshooting
 
-- **401 / token errors**  
-  The app caches the CRS token in memory with a 20-minute TTL and refreshes on 401. If you still see 401, check `CRS_USERNAME` and `CRS_PASSWORD` and that the CRS sandbox login endpoint is `POST https://api-sandbox.stitchcredit.com:443/api/users/login`.
+- **401 / token errors** — Check `CRS_USERNAME` and `CRS_PASSWORD`; sandbox login is `POST https://api-sandbox.stitchcredit.com:443/api/users/login`.
+- **Mongo connection** — Ensure MongoDB is running and `MONGODB_URI` is correct. Use `GET /api/health` to verify.
+- **Prequal fails** — Use sandbox test data only (no real PII). See CRS/Postman docs for payload and field requirements.
 
-- **Mongo connection**  
-  Ensure MongoDB is running and `MONGODB_URI` is correct. Use **GET /api/health** to verify: `curl http://localhost:3001/api/health`.
-
-- **Prequal fails**  
-  Use sandbox test data only (e.g. the sample data from the SF Hacks CRS page). Do not use real PII. If the API returns an error, check the response body and the CRS MCP/docs for payload and field requirements.
-
-## AI match search (Claude)
-
-With `ANTHROPIC_API_KEY` set, use **Find matches** in the nav or go to **/demo/match**. Choose “Landlord” or “Tenant,” add optional criteria, and run a search. Claude uses your DB listings and applicants (no full SSN) plus CRS sandbox context to suggest compatible matches. The CRS MCP server is for use inside Claude Desktop/Code; this app calls the Anthropic API directly from the server.
-
-## Routes
-
-- **GET /api/health** – Checks MongoDB connection.
-- **POST /api/ai/match** – AI match search (role, criteria) → Claude suggestions.
-- **POST /api/listings** – Create listing.
-- **POST /api/applicants** – Create applicant (SSN stored as last4 + hash only).
-- **POST /api/consent** – Record consent (applicantId, listingId, signedName).
-- **POST /api/crs/prequal** – Consent-validated prequal; generates and persists offers.
-- **GET /api/offers/:offerId** – Fetch offer menu and metadata.
-- **GET /api/audit?offerId=** – Fetch audit events for an offer.
-
-## CRS integration
-
-- **lib/crsClient.ts** – `login()` (Bearer token, 20-min TTL, refresh on 401), `requestPrequal(payload)`.
-- Prequal endpoint: `POST .../api/experian/credit-profile/credit-report/standard/exp-prequal-vantage4` with `Authorization: Bearer <token>`.
-
-## MCP and debugging
-
-See **docs/mcp-setup.md** for enabling the CRS MCP in Cursor and what to ask (token errors, payload format, response fields, rate limits).
+---
 
 ## Disclaimer
 
