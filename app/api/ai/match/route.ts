@@ -4,6 +4,8 @@ import { connectDB } from "@/lib/db";
 import { Listing, Applicant, Offer } from "@/lib/models";
 import { searchMatchesWithClaude } from "@/lib/claude";
 
+export const maxDuration = 30;
+
 const matchSchema = z.object({
   role: z.enum(["landlord", "tenant"]),
   listingId: z.string().optional(),

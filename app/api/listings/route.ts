@@ -21,8 +21,15 @@ export async function GET() {
     const listings = await Listing.find().sort({ createdAt: -1 }).lean();
     return NextResponse.json(listings);
   } catch (e) {
+    const msg = (e as Error).message;
+    if (msg.includes("MONGODB_URI")) {
+      return NextResponse.json(
+        { error: "Database not configured. Add MONGODB_URI in Vercel (Settings → Environment Variables), then redeploy." },
+        { status: 503 }
+      );
+    }
     return NextResponse.json(
-      { error: (e as Error).message },
+      { error: msg },
       { status: 500 }
     );
   }
@@ -39,8 +46,15 @@ export async function POST(req: NextRequest) {
     if (e instanceof z.ZodError) {
       return NextResponse.json({ error: e.flatten() }, { status: 400 });
     }
+    const msg = (e as Error).message;
+    if (msg.includes("MONGODB_URI")) {
+      return NextResponse.json(
+        { error: "Database not configured. Add MONGODB_URI in Vercel (Settings → Environment Variables), then redeploy." },
+        { status: 503 }
+      );
+    }
     return NextResponse.json(
-      { error: (e as Error).message },
+      { error: msg },
       { status: 500 }
     );
   }
