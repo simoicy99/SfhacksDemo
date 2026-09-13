@@ -7,7 +7,7 @@ Built for **SF Hacks 2026** · [CRS FinTech Powered by CRS](https://sf-hacks.crs
 
 ---
 
-## For judges: try the demo in under 2 minutes
+## Demo walkthrough
 
 1. **Start demo** (nav) → **Create listing** (defaults are pre-filled; click “Save & continue to applicant”).
 2. **Get my offers** (applicant page: enter your name, check consent, submit).
@@ -38,8 +38,8 @@ Built for **SF Hacks 2026** · [CRS FinTech Powered by CRS](https://sf-hacks.crs
 
 1. **Clone and install**
    ```bash
-   git clone <your-repo-url>
-   cd adjustableRent
+   git clone https://github.com/simoicy99/SfhacksDemo.git
+   cd SfhacksDemo
    pnpm install
    ```
 
